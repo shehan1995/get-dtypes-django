@@ -104,6 +104,7 @@ def infer_boolean_column(col):
     return col
 
 def infer_and_convert_data_types(df):
+    # change these limits is needed
     null_threshold = len(df) * 0.25
     unique_category_upper_limit = int(len(df)/2)
     unique_category_lower_limit = 100
@@ -116,7 +117,7 @@ def infer_and_convert_data_types(df):
             # check column converted to bool.
             df[col] = col_converted
 
-        # Check if the column should be categorical
+        # Check if the column for categorical
         elif (df[col].dtype == 'category') or (df[col].nunique() <= min(unique_category_lower_limit, unique_category_upper_limit)):
             df[col] = pd.Categorical(df[col])
             df[col] = df[col].astype('category')
@@ -168,7 +169,7 @@ def main(file):
         # Use parallel processing to optimize for large datasets
         with concurrent.futures.ProcessPoolExecutor() as executor:
             chunk_dtypes_list = [chunk for chunk in executor.map(process_chunk, np.array_split(df,
-                                                                                    no_of_threads))]  # Adjust the number of splits based on available cores
+                                                                                    no_of_threads))]
 
         # Aggregate data types across all chunks
         column_types = {}

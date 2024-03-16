@@ -4,6 +4,8 @@ Welcome to my Django project!. This README will guide you through setting up and
 
 DEMO : https://react-frontend-aa41f.web.app/
 
+_**Please note** that, for DEMO you can upload only files upto **30MB** due to a limitation in hosted server_
+
 ## Project Overview
 
 Our Django project aims to provide DTypes of  uploaded .csv/excel dataset.
