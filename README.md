@@ -58,7 +58,14 @@ To run the project locally, follow these steps:
     python manage.py runserver
     ```
 
-3. Open your web browser and visit `http://localhost:8080` to view the project.
+3. Open your web browser and visit `http://localhost:8000` to view the project.
+
+Sample CURL
+
+```bash
+curl --location 'http://127.0.0.1:8000/server/process/' \
+--form 'file=@"{file path}"'
+```
 
 ## Contact
 

@@ -76,8 +76,15 @@ def infer_complex_nums(col):
     return col
 
 
+def try_convert_to_timedelta(value):
+    try:
+        return pd.to_timedelta(value)
+    except Exception:
+        return pd.NaT
+
+
 def infer_timedelta(col):
-    col = pd.to_timedelta(col, errors='coerce')
+    col = col.apply(try_convert_to_timedelta)
     return col
 
 
@@ -109,14 +116,10 @@ def infer_and_convert_data_types(df):
             # check column converted to bool.
             df[col] = col_converted
 
-        # col_converted = df[col].apply(convert_to_bool)
-        # if col_converted.isna().sum() < null_threshold:
-        #     # check column converted to bool.
-        #     df[col] = col_converted
-
         # Check if the column should be categorical
-        elif (df[col].dtype == 'category') or (len(df[col].unique()) < min(unique_category_lower_limit, unique_category_upper_limit)):
+        elif (df[col].dtype == 'category') or (df[col].nunique() <= min(unique_category_lower_limit, unique_category_upper_limit)):
             df[col] = pd.Categorical(df[col])
+            df[col] = df[col].astype('category')
         elif df[col].dtype == 'float64':
             df[col] = pd.to_numeric(df[col], downcast='float', errors='coerce')
         elif df[col].dtype == 'int64':
@@ -159,7 +162,7 @@ def main(file):
     df_len = len(df.index)
     no_of_threads = 1
     if df_len > 10000:
-        no_of_threads = int(df_len / 10000)
+        no_of_threads = max(8, int(df_len / 10000))
 
     # Use parallel processing to optimize for large datasets
     try:
@@ -171,13 +174,9 @@ def main(file):
         df = pd.concat(chunks, ignore_index=True)
     except Exception as e:
         return e
-    # Display DataFrame info with data types
-    # df_info = df.info()
+
     column_types = {}
     for column in df.columns:
         column_types[column] = str(df[column].dtype)
-
-    # Convert the dictionary to JSON format
-    # json_format = json.dumps(column_types)
 
     return column_types
