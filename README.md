@@ -2,6 +2,8 @@
 
 Welcome to my Django project!. This README will guide you through setting up and running the project locally.
 
+DEMO : https://react-frontend-aa41f.web.app/
+
 ## Project Overview
 
 Our Django project aims to provide DTypes of  uploaded .csv/excel dataset.
