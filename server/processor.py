@@ -1,9 +1,10 @@
+import concurrent.futures
+import io
+import re
+
+import numpy as np
 import pandas as pd
 from dateutil.parser import parse
-import numpy as np
-import re, io
-import concurrent.futures
-
 
 def read_file(file):
     """
@@ -169,8 +170,6 @@ def main(file):
             chunk_dtypes_list = [chunk for chunk in executor.map(process_chunk, np.array_split(df,
                                                                                     no_of_threads))]  # Adjust the number of splits based on available cores
 
-        # Concatenate processed chunks
-        # df = pd.concat(chunks, ignore_index=True)
         # Aggregate data types across all chunks
         column_types = {}
         for chunk_dtypes in chunk_dtypes_list:
@@ -187,9 +186,3 @@ def main(file):
             return column_types
     except Exception as e:
         return e
-
-    # column_types = {}
-    # for column in df.columns:
-    #     column_types[column] = str(df[column].dtype)
-    #
-    # return column_types
