@@ -58,7 +58,7 @@ def file_handler(request):
 
     if request.method == 'GET':
         try:
-            files = ProcessedFiles.objects.order_by('created_at')
+            files = ProcessedFiles.objects.order_by('-created_at')
             serialized_data = serialize('json', files)
             response_json = json.loads(serialized_data)
 
