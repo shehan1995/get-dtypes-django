@@ -32,8 +32,7 @@ def read_file(file):
 
 def process_chunk(chunk):
     chunk = infer_and_convert_data_types(chunk)
-    return chunk
-
+    return {col: str(chunk[col].dtype) for col in chunk.columns}
 
 # Function to parse dates
 def parse_date(date_str):
@@ -157,26 +156,40 @@ def infer_and_convert_data_types(df):
     return df
 
 def main(file):
-    # Read file into DataFrame
-    df = read_file(file)
-    df_len = len(df.index)
-    no_of_threads = 1
-    if df_len > 10000:
-        no_of_threads = max(8, int(df_len / 10000))
-
-    # Use parallel processing to optimize for large datasets
     try:
+        # Read file into DataFrame
+        df = read_file(file)
+        df_len = len(df.index)
+        no_of_threads = 1
+        if df_len > 10000:
+            no_of_threads = max(8, int(df_len / 10000))
+
+        # Use parallel processing to optimize for large datasets
         with concurrent.futures.ProcessPoolExecutor() as executor:
-            chunks = [chunk for chunk in executor.map(process_chunk, np.array_split(df,
+            chunk_dtypes_list = [chunk for chunk in executor.map(process_chunk, np.array_split(df,
                                                                                     no_of_threads))]  # Adjust the number of splits based on available cores
 
         # Concatenate processed chunks
-        df = pd.concat(chunks, ignore_index=True)
+        # df = pd.concat(chunks, ignore_index=True)
+        # Aggregate data types across all chunks
+        column_types = {}
+        for chunk_dtypes in chunk_dtypes_list:
+            for col, dtype in chunk_dtypes.items():
+                if col not in column_types:
+                    column_types[col] = dtype
+                else:
+                    # If the dtype is category, keep it as category
+                    if dtype == 'category':
+                        continue
+                    # If the column already exists, choose the 'wider' dtype
+                    column_types[col] = np.promote_types(column_types[col], dtype)
+
+            return column_types
     except Exception as e:
         return e
 
-    column_types = {}
-    for column in df.columns:
-        column_types[column] = str(df[column].dtype)
-
-    return column_types
+    # column_types = {}
+    # for column in df.columns:
+    #     column_types[column] = str(df[column].dtype)
+    #
+    # return column_types
