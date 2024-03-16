@@ -27,7 +27,7 @@ To install the project dependencies, follow these steps:
 2. Navigate to the project directory:
 
     ```bash
-    cd your-project
+    cd get-dtypes-django
     ```
 
 3. Install the required Python packages:
@@ -47,7 +47,7 @@ To run the project locally, follow these steps:
 1. Navigate to the project directory if you're not already there:
 
     ```bash
-    cd your-project
+    cd get-dtypes-django
     ```
 
 2. Run the Django development server:
