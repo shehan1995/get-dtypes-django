@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure--4&7+hc^$d&ntgktwht0!8f1v9&_y%u!$6wni7k=y8b*7xo%w&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1", "localhost","django-v1-7mpcovk33q-uc.a.run.app", "https://react-frontend-aa41f.web.app", "react-frontend-aa41f.web.app"]
 
 # Application definition
 
@@ -120,5 +120,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_WHITELIST = [
-     'http://localhost:3001'
+     'http://localhost:3001','https://react-frontend-aa41f.web.app','http://127.0.0.1:3001'
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True

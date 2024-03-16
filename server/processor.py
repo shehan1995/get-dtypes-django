@@ -68,7 +68,7 @@ def to_complex(x):
         parts = re.findall(r'[-+]?\d*\.\d+|\d+', x)
         if len(parts) == 2:
             return complex(float(parts[0]), float(parts[1]))
-    return x
+    return None
 
 
 def infer_complex_nums(col):
@@ -81,31 +81,41 @@ def infer_timedelta(col):
     return col
 
 
-def convert_to_bool(value):
-    if isinstance(value, bool):
-        return value
-    elif isinstance(value, str):
-        if value.lower() == 'true':
-            return True
-        elif value.lower() == 'false':
-            return False
-    return None
+def infer_boolean_column(col):
+    # Define mapping of values
+    mapping = {
+        'true': True,
+        'false': False,
+        'yes': True,
+        'no': False,
+        '1': True,
+        '0': False
+    }
 
+    # Convert values based on mapping
+    col = col.apply(lambda x: mapping.get(str(x).lower(), None))
+    return col
 
 def infer_and_convert_data_types(df):
     null_threshold = len(df) * 0.25
+    unique_category_upper_limit = int(len(df)/2)
+    unique_category_lower_limit = 100
 
     for col in df.columns:
 
-        # Convert the column to boolean
-        col_converted = df[col].apply(convert_to_bool)
+        # Check for boolean column
+        col_converted = infer_boolean_column(df[col])
         if col_converted.isna().sum() < null_threshold:
             # check column converted to bool.
             df[col] = col_converted
 
+        # col_converted = df[col].apply(convert_to_bool)
+        # if col_converted.isna().sum() < null_threshold:
+        #     # check column converted to bool.
+        #     df[col] = col_converted
+
         # Check if the column should be categorical
-        # elif len(df[col].unique()) / len(df[col]) < 0.5:  # Example threshold for categorization
-        elif len(df[col].unique()) < min(100, int(len(df[col]) / 2)):  # Example threshold for categorization
+        elif (df[col].dtype == 'category') or (len(df[col].unique()) < min(unique_category_lower_limit, unique_category_upper_limit)):
             df[col] = pd.Categorical(df[col])
         elif df[col].dtype == 'float64':
             df[col] = pd.to_numeric(df[col], downcast='float', errors='coerce')
@@ -114,11 +124,6 @@ def infer_and_convert_data_types(df):
         elif df[col].dtype == 'datetime':
             df[col] = pd.to_datetime(df[col], errors='coerce')
         else:
-            # check for time delta
-            col_converted = infer_timedelta(df[col])
-            if col_converted.isna().sum() < null_threshold:
-                df[col] = col_converted
-                continue
 
             # check for numbers
             col_converted = infer_numbers(df[col])
@@ -138,10 +143,15 @@ def infer_and_convert_data_types(df):
                 df[col] = col_converted
                 continue
 
+            # check for time delta
+            col_converted = infer_timedelta(df[col])
+            if col_converted.isna().sum() < null_threshold:
+                df[col] = col_converted
+                continue
+
             # else string
 
     return df
-
 
 def main(file):
     # Read file into DataFrame
@@ -152,13 +162,15 @@ def main(file):
         no_of_threads = int(df_len / 10000)
 
     # Use parallel processing to optimize for large datasets
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        chunks = [chunk for chunk in executor.map(process_chunk, np.array_split(df,
-                                                                                no_of_threads))]  # Adjust the number of splits based on available cores
+    try:
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            chunks = [chunk for chunk in executor.map(process_chunk, np.array_split(df,
+                                                                                    no_of_threads))]  # Adjust the number of splits based on available cores
 
-    # Concatenate processed chunks
-    df = pd.concat(chunks, ignore_index=True)
-
+        # Concatenate processed chunks
+        df = pd.concat(chunks, ignore_index=True)
+    except Exception as e:
+        return e
     # Display DataFrame info with data types
     # df_info = df.info()
     column_types = {}
